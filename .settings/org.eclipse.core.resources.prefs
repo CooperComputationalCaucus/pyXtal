@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//pyXtal/csp_utils/__init__.py=utf-8
+encoding//pyXtal/csp_utils/dataset_io.py=utf-8
 encoding//pyXtal/io_types/__init__.py=utf-8
 encoding//pyXtal/io_types/cif_io.py=utf-8
 encoding//pyXtal/io_types/pdb_io.py=utf-8
