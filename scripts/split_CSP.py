@@ -11,9 +11,18 @@ import sys
 sys.path.append('../')
 import pyXtal as pxt
 
-dir = '/Users/pmm/Documents/xtal_learning/triptycene_chengxi/'
-fname = 'totalT2fixed.cif'
-dir2 = os.path.join(dir,os.path.splitext(fname)[0])
-os.mkdir(dir2)
+# ###### Chengxi
+# dir = '/Users/pmm/Documents/xtal_learning/triptycene_chengxi/'
+# fname = 'totalT2fixed.cif'
+# dir2 = os.path.join(dir,os.path.splitext(fname)[0])
+# os.mkdir(dir2)
+# 
+# pxt.split_cif(os.path.join(dir,fname),dir=dir2)
 
-pxt.split_cif(os.path.join(dir,fname),dir=dir2)
+# AIC
+dir = '/Users/pmm/Documents/xtal_learning/hydrocarbons/'
+fname = 'Combined_CIF_ML10.cif'
+dir2 = os.path.join(dir,'ML_10')
+if not os.path.isdir(dir2):
+    os.mkdir(dir2)
+pxt.split_cif(os.path.join(dir,fname),dir=dir2,name_delim='\\')

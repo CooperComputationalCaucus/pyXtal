@@ -328,28 +328,32 @@ def write_cif(filename,xtal,verbose=False):
                         atoms['Uij'][i][0][2],
                         atoms['Uij'][i][0][1]))
 
-def split_cif(filename,dir='./'): 
+def split_cif(filename,dir='./',name_delim=None): 
     '''
     Routine for reading .CIF files that contain multiple 
-    Places cif file in new style dictionary and an Xtal class, then writes to directory wiht data name
+    Places cif file in new style dictionary and an Xtal class, then writes to directory with data name
     Presently requires plain text descriptions of symetry ops, and does not interpret space groups
     ###############
     Parameters:
-        filename - complete location of cif file
-        dir - target directory
+        filename: complete location of cif file
+        dir:  target directory
+        name_delim: splits data_ string with deliminator and rejoins with underscore '_'
     ###############
     '''
-    # Minor modifications to deal with chengxi's formatting #
-    import pandas as pd
-    df = pd.DataFrame()
-    df = pd.DataFrame(columns=['Name', 'Density', 'Energy'])
-    basename = os.path.splitext(os.path.basename(filename))[0]
-    # Minor modifications to deal with chengxi's formatting #
+    #===========================================================================
+    # # FOR CHENGXI'S DATA ONLY #
+    # import pandas as pd
+    # df = pd.DataFrame()
+    # df = pd.DataFrame(columns=['Name', 'Density', 'Energy'])
+    # basename = os.path.splitext(os.path.basename(filename))[0]
+    # # FOR CHENGXI'S DATA ONLY #
+    #===========================================================================
     # Open the .CIF file
     with open(filename,'r') as f:
         line_num = 0
         cif_num = -1
         same_cif = True
+        first_cif = True
         reading_sym_ops = False
         reading_atom_sites = False
         reading_atom_aniso = False
@@ -372,16 +376,27 @@ def split_cif(filename,dir='./'):
             # Pull data title
             if cols[0][:5]=='data_':
                 cif_num+=1
-                # FOR CHENGXI'S DATA ONLY #
-                cols = cols[0].split('_')
-                energy = float(cols[2])
-                density = float(cols[3])
-                df.loc[cif_num] = ["{}_{}".format(basename,cif_num),density,energy] 
-                # FOR CHENGXI'S DATA ONLY #
-                continue
+                data_name_tmp = cols[0][5:]
+                if name_delim:
+                    data_name_tmp = '_'.join(data_name_tmp.split(name_delim))
+                #===============================================================
+                # # FOR CHENGXI'S DATA ONLY #
+                # cols = cols[0].split('_')
+                # energy = float(cols[2])
+                # density = float(cols[3])
+                # df.loc[cif_num] = ["{}_{}".format(basename,cif_num),density,energy] 
+                # # FOR CHENGXI'S DATA ONLY #
+                #===============================================================
+                if first_cif: 
+                    first_cif=False
+                    data_name=data_name_tmp
+                    continue
             
             # Output cif at end of record
-            if cols[0][:4]=='#END':
+            if cols[0][:4]=='#END' or cols[0][:5]=='data_':
+                data_name_tmp = cols[0][5:]
+                if name_delim:
+                    data_name_tmp = '_'.join(data_name_tmp.split(name_delim))
                 same_cif=False
                 #Creating a cleaner dictionary to return with a complete atom list
                 cell_data['L_a'] =  float(data['_cell_length_a'])
@@ -443,18 +458,19 @@ def split_cif(filename,dir='./'):
                                 new_coords.append(np.array([xn,yn,zn]))
                                 new_syms.append(syms[i])
                                 new_labels.append(labels[i])
-                                new_U.append(Uij[i,:])
+                                if Uij: new_U.append(Uij[i,:])
                 
                 #Sorting the atom list alphabetically
                 if (new_coords):
                     coords=np.vstack((coords, new_coords))
                     syms.extend(new_syms)
                     labels.extend(new_labels)
-                    Uij=np.vstack((Uij,new_U))
+                    if Uij: Uij=np.vstack((Uij,new_U))
                 xtal = Xtal(positions=coords,lat=cell_data,symbols=syms,labels=labels,Uij=Uij)
-                write_file = os.path.join(dir,"{}_{}.cif".format(basename,cif_num))
+                write_file = os.path.join(dir,"{}.cif".format(data_name))
                 print(write_file)
                 write_cif(write_file,xtal) 
+                data_name=data_name_tmp
                 continue
                     
             # ID the keywords
@@ -488,10 +504,13 @@ def split_cif(filename,dir='./'):
             elif (reading_sym_ops):
                 # Add the operation if the string is between single quotes.
                 # Otherwise it's a sign we are done with the list.
+                # Some files don't use the quotes, so wait for next underscored command or loop_
                 if (cols[0][0] == '\''  and  cols[0][-1] == '\''):
                     data['_symmetry_equiv_pos_as_xyz'].append(cols[0][1:-1])
-                else:
+                elif cols[0][0] == '_' or cols[0][:5]=='loop_':
                     reading_sym_ops = False
+                else:
+                    data['_symmetry_equiv_pos_as_xyz'].append(cols[0][:])
 
             # Keywords associated with atom sites
             elif (cols[0] == '_atom_site_label'):
@@ -568,4 +587,8 @@ def split_cif(filename,dir='./'):
                 # columns, and which does not start with '_atom_site_'.
                 elif (len(cols[0]) < 11  or  cols[0][:11] != '_atom_site_'):
                     reading_atom_aniso = False
-    df.to_pickle(os.path.join(dir,"{}_CSP_data".format(basename)))
+    #===========================================================================
+    # # FOR CHENGXI'S DATA ONLY #
+    # df.to_pickle(os.path.join(dir,"{}_CSP_data".format(basename)))
+    #===========================================================================
+    
