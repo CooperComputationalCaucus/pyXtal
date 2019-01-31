@@ -10,6 +10,7 @@ from ..core_types import *
 from numpy import radians,degrees
 import numpy as np
 import os
+import numexpr
 
 __all__ = [
     'read_cif', 'write_cif','split_cif', 
@@ -77,6 +78,8 @@ def read_cif(filename):
                 # Otherwise it's a sign we are done with the list.
                 if (cols[0][0] == '\''  and  cols[0][-1] == '\''):
                     data['_symmetry_equiv_pos_as_xyz'].append(cols[0][1:-1])
+                elif(cols[0].isdigit()):
+                    data['_symmetry_equiv_pos_as_xyz'].append(cols[1])
                 else:
                     reading_sym_ops = False
 
@@ -196,8 +199,11 @@ def read_cif(filename):
         for i in range(imax):
             for op in ops:
                 x,y,z = coords[i,:]
-                # Text evaluation of symmetry operation
-                xn,yn,zn = eval(op)
+                # Text evaluation of symmetry operation (numxpr faield with list comprehensions)
+                xn = numexpr.evaluate(op.split(',')[0]).item()
+                yn = numexpr.evaluate(op.split(',')[1]).item()
+                zn = numexpr.evaluate(op.split(',')[2]).item()
+                
                 # Forcing into the unit cell
                 xn = (xn + 10.0) % 1.0
                 yn = (yn + 10.0) % 1.0
@@ -216,14 +222,14 @@ def read_cif(filename):
                     new_coords.append(np.array([xn,yn,zn]))
                     new_syms.append(syms[i])
                     new_labels.append(labels[i])
-                    new_U.append(Uij[i,:])
+                    if Uij: new_U.append(Uij[i,:])
 
     #Sorting the atom list alphabetically
     if (new_coords):
         coords=np.vstack((coords, new_coords))
         syms.extend(new_syms)
         labels.extend(new_labels)
-        Uij=np.vstack((Uij,new_U))
+        if Uij: Uij=np.vstack((Uij,new_U))
     xtal = Xtal(positions=coords,lat=cell_data,symbols=syms,labels=labels,Uij=Uij)
     return xtal
 def write_cif(filename,xtal,verbose=False):
@@ -439,7 +445,9 @@ def split_cif(filename,dir='./',name_delim=None):
                         for op in ops:
                             x,y,z = coords[i,:]
                             # Text evaluation of symmetry operation
-                            xn,yn,zn = eval(op)
+                            xn = numexpr.evaluate(op.split(',')[0]).item()
+                            yn = numexpr.evaluate(op.split(',')[1]).item()
+                            zn = numexpr.evaluate(op.split(',')[2]).item()
                             # Forcing into the unit cell
                             xn = (xn + 10.0) % 1.0
                             yn = (yn + 10.0) % 1.0
