@@ -45,12 +45,13 @@ def sort_cifs(dir,precision=None,copy=True):
     Takes all of the cifs in a directory and places them in subfolders according to their 
     spacegroup number.  
     
-    If no precision 
+    If no precision  is given the highest symmetry est is given, the highest symmetry of a 
+    default set of precisions is used. 
     
     Inputs
     ======================
     dir: directory of cifs
-    precision : precision of symmetry calculation. If none is given the highest symmetry est is given
+    precision : precision of symmetry calculation.
     copy: True to create copies of files, False to move files
     '''
     import os
