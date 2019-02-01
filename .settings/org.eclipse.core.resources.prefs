@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//pyXtal/core_types/supercells.py=utf-8
+encoding//pyXtal/core_types/xtal_systems.py=utf-8
 encoding//pyXtal/csp_utils/__init__.py=utf-8
 encoding//pyXtal/csp_utils/dataset_io.py=utf-8
 encoding//pyXtal/csp_utils/findsym.py=utf-8

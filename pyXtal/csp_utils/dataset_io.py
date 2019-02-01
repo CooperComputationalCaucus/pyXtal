@@ -52,3 +52,35 @@ def csv_to_dataframe(fnames,manip=[],rename={},index_col=None,usecols=None):
     
     df = pd.concat(frames)
     return df
+
+def parse_filenames(dir,keys=[],sep='_'):
+    '''
+    Parses filenames in a directory, and separates them into keys as presented, 
+    and outputs a dataframe. If '_' is given as a key, the data is discarded.
+    If not enough keys are given, only the first components are assigned. 
+    
+    Inputs
+    ==================    
+    dir : directory of interest
+    sep : string seperator
+    keys : list of keys for data splitting. 
+    
+    Returns
+    ==================
+    df : complete dataframe
+    '''
+    data = {}
+    for key in keys:
+        if key == '_': continue
+        data[key] = []
+    data["Name"] = []
+    fnames = os.listdir(dir)
+    for fname in fnames:
+        base = os.path.splitext(fname)[0]
+        data["Name"].append(base)
+        for idx,col in enumerate(base.split(sep)[:len(keys)]):
+            if keys[idx] == '_': continue
+            data[keys[idx]].append(col)
+                
+    df = pd.DataFrame.from_dict(data)      
+    return df
