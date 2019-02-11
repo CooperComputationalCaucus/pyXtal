@@ -21,8 +21,8 @@ import pyXtal as pxt
 
 # AIC
 dir = '/Users/pmm/Documents/xtal_learning/hydrocarbons/'
-fname = 'Combined_CIF_ML10.cif'
-dir2 = os.path.join(dir,'ML_10')
+fname = 'Combined_CIF_ML_1.cif'
+dir2 = os.path.join(dir,'ML_1')
 if not os.path.isdir(dir2):
     os.mkdir(dir2)
 pxt.split_cif(os.path.join(dir,fname),dir=dir2,name_delim='\\')
